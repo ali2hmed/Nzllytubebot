@@ -14,20 +14,34 @@ TEXTS = {
             "Send me a <b>YouTube</b> link, pick the quality you want, and I'll send you the video 🎬\n\n"
             "✅ Every quality from 144p up to 4K\n"
             "✅ MP3 to save just the sound 🎵\n"
+            "✅ Search songs: just type a song name\n"
             "✅ Videos and Shorts\n\n"
-            "Just paste a link here 👇\n\n"
+            "Paste a link or type a song name 👇\n\n"
             "📣 News: @{channel}"
         ),
         "help": (
             "ℹ️ <b>Help</b>\n\n"
             "<b>Here:</b> paste a YouTube link, then tap the quality you want or 🎵 MP3.\n\n"
-            "<b>In groups:</b> add me, then send <code>/dl</code> followed by the link:\n"
-            "<code>/dl https://youtu.be/abc123</code>\n\n"
+            "<b>Songs:</b> type a song or singer name and pick one of the top 5 results. "
+            "🎵 sends it as MP3, 🎬 shows the video qualities.\n\n"
+            "<b>In groups:</b> add me, then send <code>/dl</code> followed by the link, "
+            "or <code>/song</code> followed by a name:\n"
+            "<code>/dl https://youtu.be/abc123</code>\n"
+            "<code>/song Adele Hello</code>\n\n"
             "<b>Good to know</b>\n"
             "• Telegram allows files up to 2 GB, so very long videos only show the smaller qualities.\n"
             "• Live streams, private and age-restricted videos aren't supported."
         ),
-        "send_link": "📎 Send me a YouTube link.",
+        "send_link": "📎 Send me a YouTube link, or type a song name.",
+        "searching": "🔎 Searching…",
+        "results": (
+            "🎵 <b>Results for:</b> {query}\n\n"
+            "{results}\n\n"
+            "🎵 + number: get the song as MP3\n"
+            "🎬 + number: choose a video quality"
+        ),
+        "no_results": "🤷 I couldn't find anything for that. Try different words.",
+        "song_usage": "🎵 Send <code>/song</code> followed by the name, like:\n<code>/song Adele Hello</code>",
         "no_video": "🤷 That link isn't a video. Send a link to a YouTube video or Short.",
         "looking": "🔎 Looking up the video…",
         "pick": (
@@ -78,13 +92,15 @@ TEXTS = {
             "Videos {video:,} · MP3 {mp3:,}"
         ),
         "cmd_dl": "Download a YouTube link",
-        "bot_about": "Download YouTube videos in any quality up to 4K, or as MP3. By @{channel}",
+        "cmd_song": "Search for a song",
+        "bot_about": "YouTube videos in any quality up to 4K, MP3 and song search. By @{channel}",
         "bot_description": (
             "🎬 Download YouTube videos in the quality you choose.\n\n"
             "✅ From 144p up to 4K\n"
             "✅ MP3 to save just the sound\n"
+            "✅ Search songs by name\n"
             "✅ Videos and Shorts\n\n"
-            "Just send a link.\n\n"
+            "Send a link or a song name.\n\n"
             "📣 News: @{channel}"
         ),
     },
@@ -94,20 +110,34 @@ TEXTS = {
             "أرسل لي رابط <b>يوتيوب</b>، اختر الجودة اللي تريدها، وأرسل لك الفيديو 🎬\n\n"
             "✅ كل الجودات من 144p إلى 4K\n"
             "✅ MP3 لحفظ الصوت فقط 🎵\n"
+            "✅ ابحث عن الأغاني: فقط اكتب اسم الأغنية\n"
             "✅ الفيديوهات والشورتس\n\n"
-            "فقط الصق الرابط هنا 👇\n\n"
+            "الصق رابطاً أو اكتب اسم أغنية 👇\n\n"
             "📣 الأخبار: @{channel}"
         ),
         "help": (
             "ℹ️ <b>المساعدة</b>\n\n"
             "<b>هنا:</b> الصق رابط يوتيوب، ثم اضغط على الجودة اللي تريدها أو 🎵 MP3.\n\n"
-            "<b>في المجموعات:</b> أضفني، ثم أرسل <code>/dl</code> وبعده الرابط:\n"
-            "<code>/dl https://youtu.be/abc123</code>\n\n"
+            "<b>الأغاني:</b> اكتب اسم الأغنية أو المطرب واختر من أفضل 5 نتائج. "
+            "🎵 يرسلها MP3، و🎬 يعرض جودات الفيديو.\n\n"
+            "<b>في المجموعات:</b> أضفني، ثم أرسل <code>/dl</code> وبعده الرابط، "
+            "أو <code>/song</code> وبعده الاسم:\n"
+            "<code>/dl https://youtu.be/abc123</code>\n"
+            "<code>/song فيروز كيفك انت</code>\n\n"
             "<b>معلومات مفيدة</b>\n"
             "• تيليجرام يسمح بملفات حتى 2 جيجابايت، لذلك الفيديوهات الطويلة جداً تظهر بالجودات الأصغر فقط.\n"
             "• البث المباشر والفيديوهات الخاصة والمقيدة بالعمر غير مدعومة."
         ),
-        "send_link": "📎 أرسل لي رابط يوتيوب.",
+        "send_link": "📎 أرسل لي رابط يوتيوب، أو اكتب اسم أغنية.",
+        "searching": "🔎 جارٍ البحث…",
+        "results": (
+            "🎵 <b>نتائج البحث عن:</b> {query}\n\n"
+            "{results}\n\n"
+            "🎵 + الرقم: الأغنية MP3\n"
+            "🎬 + الرقم: اختيار جودة الفيديو"
+        ),
+        "no_results": "🤷 ما لقيت شي بهذا الاسم. جرّب كلمات ثانية.",
+        "song_usage": "🎵 أرسل <code>/song</code> وبعده الاسم، مثل:\n<code>/song فيروز كيفك انت</code>",
         "no_video": "🤷 هذا الرابط ليس فيديو. أرسل رابط فيديو أو شورت من يوتيوب.",
         "looking": "🔎 جارٍ البحث عن الفيديو…",
         "pick": (
@@ -158,13 +188,15 @@ TEXTS = {
             "فيديو {video:,} · MP3 {mp3:,}"
         ),
         "cmd_dl": "تحميل رابط يوتيوب",
-        "bot_about": "حمّل فيديوهات يوتيوب بأي جودة حتى 4K، أو كـ MP3. من @{channel}",
+        "cmd_song": "البحث عن أغنية",
+        "bot_about": "فيديوهات يوتيوب بأي جودة حتى 4K، MP3 وبحث عن الأغاني. من @{channel}",
         "bot_description": (
             "🎬 حمّل فيديوهات يوتيوب بالجودة اللي تختارها.\n\n"
             "✅ من 144p إلى 4K\n"
             "✅ MP3 لحفظ الصوت فقط\n"
+            "✅ ابحث عن الأغاني بالاسم\n"
             "✅ الفيديوهات والشورتس\n\n"
-            "فقط أرسل الرابط.\n\n"
+            "أرسل رابطاً أو اسم أغنية.\n\n"
             "📣 الأخبار: @{channel}"
         ),
     },

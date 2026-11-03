@@ -44,6 +44,7 @@ DATA_DIR = Path(os.environ.get("DATA_DIR", "."))
 TMP_DIR = DATA_DIR / "tmp"
 NO_PREVIEW = LinkPreviewOptions(is_disabled=True)
 PROGRESS_EVERY = 2.5  # seconds between progress bar updates; Telegram limits message edits
+SEARCH_RESULTS = 5
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
@@ -234,6 +235,50 @@ async def show_choices(message, url, lang):
     await status.delete()
 
 
+NUMBERS = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟")
+
+
+def isolate(text):
+    """Keep Arabic and English names from swapping places with the text around them."""
+    return f"\u2068{text}\u2069"
+
+
+def clean_title(title, limit=60):
+    """Make search results easy to scan: no hashtags, no "| extra" parts, not too long."""
+    title = re.sub(r"#\S+", "", title).strip() or title.replace("#", " ")  # all hashtags: keep the words
+    for separator in ("||", "|", "｜"):
+        first = title.split(separator)[0].strip()
+        if separator in title and len(first) >= 8:
+            title = first
+            break
+    title = " ".join(title.split()).strip(" -–—·") or "…"
+    return title if len(title) <= limit else title[:limit - 1].rstrip() + "…"
+
+
+async def search_songs(message, query, lang):
+    """Reply with the top YouTube results: 🎵 sends the MP3, 🎬 shows the qualities."""
+    query = " ".join(query.split())[:100]
+    status = await message.reply(t(lang, "searching"))
+    try:
+        results = await youtube.search(query, SEARCH_RESULTS)
+    except Exception:
+        log.exception("Search failed for %r", query)
+        return await status.edit_text(t(lang, "failed"))
+    if not results:
+        return await status.edit_text(t(lang, "no_results"))
+    lines = []
+    for number, result in zip(NUMBERS, results):
+        channel = clean_title(result.channel, 30)
+        lines.append(f"{number} <b>{isolate(html.escape(clean_title(result.title)))}</b>\n"
+                     f"⏱ {fmt_duration(result.duration)} · {isolate(html.escape(channel))}")
+    rows = [
+        [InlineKeyboardButton(f"🎵 {n}", callback_data=f"a:{r.id}") for n, r in enumerate(results, 1)],
+        [InlineKeyboardButton(f"🎬 {n}", callback_data=f"p:{r.id}") for n, r in enumerate(results, 1)],
+    ]
+    await status.edit_text(t(lang, "results", query=isolate(html.escape(query)), results="\n\n".join(lines)),
+                           reply_markup=InlineKeyboardMarkup(rows), link_preview_options=NO_PREVIEW)
+
+
 async def send_file(reply_to, kind, file, caption, video, progress=None):
     """Upload a downloaded youtube.File as a song or a video."""
     thumb = str(file.thumb) if file.thumb else None
@@ -266,6 +311,8 @@ async def deliver(reply_to, user_id, video_id, mp3, quality, spec, lang):
     updater = asyncio.create_task(show_progress(status, progress, lang))
     try:
         video = await get_video(video_id)
+        if mp3 and not spec:
+            spec = video.audio_format
         expected = video.audio_size if mp3 else next((c.size for c in video.choices if c.quality == quality), 0)
         async with slots:
             with tempfile.TemporaryDirectory(dir=TMP_DIR) as folder:
@@ -425,9 +472,35 @@ async def link_message(_, message):
         await show_choices(message, url, lang)
 
 
+@bot.on_message(filters.command("song"))
+async def song_cmd(_, message):
+    lang = user_lang(message.from_user)
+    args = (message.text or "").split(None, 1)
+    if len(args) < 2:
+        return await message.reply(t(lang, "song_usage"))
+    if not await has_joined(message.from_user):
+        return await ask_to_join(message, lang)
+    await search_songs(message, args[1], lang)
+
+
+# In private, any other text is a song (or video) to search for.
+@bot.on_message(filters.private & filters.text & ~filters.via_bot & ~filters.regex(r"^/"))
+async def private_search(_, message):
+    lang = user_lang(message.from_user)
+    if not await has_joined(message.from_user):
+        return await ask_to_join(message, lang)
+    await search_songs(message, message.text, lang)
+
+
 async def resume(message):
     """Run a message again after its sender joined the channel."""
-    await link_message(bot, message)
+    text = message.text or message.caption or ""
+    if youtube.find_urls(text):
+        await link_message(bot, message)
+    elif text.startswith("/"):
+        await song_cmd(bot, message)
+    else:
+        await private_search(bot, message)
 
 
 @bot.on_message(filters.command("dl"))
@@ -470,6 +543,11 @@ async def buttons(_, query):
         return await joined_button(query, lang)
     if data.startswith(("v:", "a:")):
         return await choice_button(query, lang)
+    if data.startswith("p:"):  # 🎬 on a search result: show its qualities
+        if not await has_joined(query.from_user):
+            return await query.answer(t(lang, "not_joined", channel=MUST_JOIN), show_alert=True)
+        await query.answer()
+        return await show_choices(query.message, f"https://youtu.be/{data[2:]}", lang)
     toast = None
     if data.startswith("lang:"):
         lang = data.split(":", 1)[1]
@@ -501,8 +579,8 @@ async def buttons(_, query):
 async def setup_profile():
     for lang in LANGS:
         code = "" if lang == "ar" else lang  # Arabic for everyone, English for English apps
-        private = [BotCommand(c, t(lang, f"cmd_{c}")) for c in ("start", "help", "lang")]
-        groups = [BotCommand(c, t(lang, f"cmd_{c}")) for c in ("dl", "help", "lang")]
+        private = [BotCommand(c, t(lang, f"cmd_{c}")) for c in ("start", "song", "help", "lang")]
+        groups = [BotCommand(c, t(lang, f"cmd_{c}")) for c in ("dl", "song", "help", "lang")]
         await bot.set_bot_commands(private, scope=BotCommandScopeAllPrivateChats(), language_code=code)
         await bot.set_bot_commands(groups, scope=BotCommandScopeAllGroupChats(), language_code=code)
         if OWNER_ID:

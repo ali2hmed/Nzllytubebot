@@ -53,6 +53,15 @@ class Video:
 
 
 @dataclass
+class Result:
+    """One search result."""
+    id: str
+    title: str
+    channel: str
+    duration: int
+
+
+@dataclass
 class File:
     path: Path
     width: int = 0
@@ -150,6 +159,30 @@ def _look_up(url):
     if not video.choices and not audio:
         raise DownloadError("unavailable")
     return video
+
+
+def _search(query, count):
+    # extract_flat only reads the result list, so searching takes a second or two.
+    with yt_dlp.YoutubeDL(dict(BASE_OPTIONS, extract_flat="in_playlist")) as ydl:
+        try:
+            info = ydl.extract_info(f"ytsearch{count + 5}:{query}", download=False)
+        except yt_dlp.utils.DownloadError as e:
+            raise DownloadError(_error_key(e))
+    results = []
+    for entry in info.get("entries") or []:
+        # No length means a live stream or something that isn't a normal video.
+        if not entry.get("id") or not entry.get("duration") or entry.get("live_status") in ("is_live", "is_upcoming"):
+            continue
+        results.append(Result(entry["id"], " ".join((entry.get("title") or "").split()),
+                              (entry.get("channel") or entry.get("uploader") or "").strip(), int(entry["duration"])))
+        if len(results) == count:
+            break
+    return results
+
+
+async def search(query, count=5):
+    """The top `count` YouTube videos for `query`."""
+    return await asyncio.to_thread(_search, query, count)
 
 
 async def look_up(url):
