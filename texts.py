@@ -9,6 +9,7 @@ CHOOSE_LANG = "🌐 <b>Please choose your language</b>\n🌐 <b>الرجاء ا�
 
 TEXTS = {
     "en": {
+        "back_online": "✅ <b>I'm back online!</b>\nSorry for the break. Everything works again, send me what you need 🙏",
         "welcome": (
             "👋 Hey <b>{name}</b>!\n\n"
             "Send me a <b>YouTube</b> link, pick the quality you want, and I'll send you the video 🎬\n\n"
@@ -105,6 +106,7 @@ TEXTS = {
         ),
     },
     "ar": {
+        "back_online": "✅ <b>البوت رجع يشتغل!</b>\nنعتذر عن الانقطاع. كل شي يشتغل الآن، أرسل اللي تحتاجه 🙏",
         "welcome": (
             "👋 أهلاً <b>{name}</b>!\n\n"
             "أرسل لي رابط <b>يوتيوب</b>، اختر الجودة اللي تريدها، وأرسل لك الفيديو 🎬\n\n"
